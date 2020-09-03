@@ -225,6 +225,8 @@ dat.taxa <-read.csv("clams_all.var.imp.csv")%>% #from local copy
   gather(key=predictor,value=importance,2:ncol(.))%>%
   glimpse()
 
+dat.taxa$resp.var <- as.factor(dat.taxa$resp.var)
+dat.taxa$predictor <- as.factor(dat.taxa$predictor)
 
 # Plotting defaults----
 library(ggplot2)
@@ -333,7 +335,7 @@ Theme1 <-
 
 
 # Bring in and format the raw data----
-setwd("~/GitHub/FSSgam")
+setwd("E:/stats/FSSgam/")
 name<-"clams"
 
 # Load the dataset - from github
@@ -354,8 +356,8 @@ dat <-read.csv("case_study2_dataset.csv")%>%
 
 
 # Manually make the most parsimonious GAM models for each taxa ----
-setwd("~/GitHub/FSSgam/case_study2_model_out")
-
+dir.create("./output/case_study2_model_out")
+setwd("./output/case_study2_model_out")
 
 # MODEL Bivalve.Dosina.subrosea 500um + distance x Status ----
 dat.bds<-dat%>%filter(Taxa=="BDS")
