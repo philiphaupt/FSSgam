@@ -32,7 +32,7 @@
 # fitting is even attempted.
 
 # Source functions----
-devtools::install_github("beckyfisher/FSSgam_package")
+#devtools::install_github("beckyfisher/FSSgam_package")
 library(FSSgam)
 library(RCurl)
 # load data
@@ -57,7 +57,7 @@ cont.preds=c("complexity","sqrt.rug","sqrtLC","sqrtHC","sqrtMacro",
              "SCORE1","SCORE2") # use as continuous predictors.
 cor(dat[,cont.preds])
 # have a look at the distribution of the continuous predictors
-pdf(file="pred_vars.pdf",onefile=T)
+pdf(file="./output/distribution_continuous_pred_vars_case_study_1.pdf",onefile=T)
 for(p in 1:length(cont.preds)){
 par(mfrow=c(2,1))
  hist(dat[,cont.preds[p]],main=cont.preds[p])
@@ -81,7 +81,7 @@ resp.vars.fams=list("Herbivore.abundance"=tw(),
 resp.vars=names(resp.vars.fams)
 
 # take a look at the response variables
-pdf(file="resp_vars.pdf",onefile=T)
+pdf(file="./output/resp_vars_case_study_1.pdf",onefile=T)
 for(r in 1:length(resp.vars)){
 par(mfrow=c(2,1))
  hist(dat[,resp.vars[r]],main=resp.vars[r])
@@ -95,7 +95,7 @@ out.all=list()
 var.imp=list()
 fss.all=list()
 top.all=list()
-pdf(file="mod_fits_functional_biomass.pdf",onefile=T)
+pdf(file="./output/mod_fits_functional_biomass_case_study_1.pdf",onefile=T)
 for(i in 1:length(resp.vars)){
  use.dat=na.omit(dat[,c(null.vars,cont.preds,cat.preds,resp.vars[i])])
  use.dat$response=use.dat[,resp.vars[i]]
@@ -104,6 +104,7 @@ for(i in 1:length(resp.vars)){
                     family=tw(),
                     data=use.dat)
 
+ # this is where FSSgam comes in (PH)
  model.set=generate.model.set(use.dat=use.dat,max.predictors=2,   # limit size here because null model already complex
                              test.fit=Model1,k=3,
                              pred.vars.cont=cont.preds,
