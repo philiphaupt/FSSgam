@@ -50,11 +50,12 @@
 
 # Part 1-FSS modeling----
 
+rm(list=ls())
+
 # librarys----
-detach("package:plyr", unload=TRUE)#will error - don't worry
-library(tidyr)
-library(dplyr)
-options(dplyr.width = Inf) #enables head() to display all coloums
+# detach("package:plyr", unload=TRUE) # this is to ensure that plyr is not loaded prior to dplyr which will cause errors in this script - ignore if youget an error message
+library(tidyverse) # probably makes sense to load tidyverse
+options(dplyr.width = Inf) #enables head() to display all columns
 library(mgcv)
 library(MuMIn)
 library(car)
@@ -66,11 +67,11 @@ library(doSNOW)
 library(gamm4)
 library(RCurl) #needed to download data from GitHub
 
-rm(list=ls())
+
 
 
 # install package----
-# devtools::install_github("beckyfisher/FSSgam_package") #run once
+# devtools::install_github("beckyfisher/FSSgam_package") #run once - Phil: done
 library(FSSgam)
 
 # Bring in and format the data----
@@ -90,7 +91,10 @@ dat <-read.csv("case_study2_dataset.csv")%>%
   na.omit()%>%
   glimpse()
 
-
+# Phil changes: IMPORTANT define data type correctly for mgcv::gam to run
+dat$Location <- as.factor(dat$Location)
+dat$Status <- as.factor(dat$Status)
+dat$Site <- as.factor(dat$Site)
 
 
 # Set predictor variables---
@@ -100,9 +104,10 @@ pred.vars=c("depth","X4mm","X2mm","X1mm","X500um","X250um","X125um","X63um",
 # predictor variables Removed at first pass---
 # broad.Sponges and broad.Octocoral.Black and broad.Consolidated , "InPreds","BioTurb" are too rare
 
-# Check for correalation of predictor variables- remove anything highly correlated (>0.95)---
+# Check for correlation of predictor variables- remove anything highly correlated (>0.95)---
 round(cor(dat[,pred.vars]),2)
 # nothing is highly correlated 
+#Phil: What about X1mm and X2mm at 0.91?
 
 # Plot of likely transformations - thanks to Anna Cresswell for this loop!
 par(mfrow=c(3,2))
@@ -118,9 +123,9 @@ for (i in pred.vars) {
 }
 
 # Review of individual predictors - we have to make sure they have an even distribution---
-#If the data are squewed to low numbers try sqrt>log or if squewed to high numbers try ^2 of ^3
+# If the data are squewed to low numbers try sqrt>log or if squewed to high numbers try ^2 of ^3
 # Decided that X4mm, X2mm, X1mm and X500um needed a sqrt transformation
-#Decided Depth, x63um, InPreds and BioTurb were not informative variables. 
+# Decided Depth, x63um, InPreds and BioTurb were not informative variables. 
 
 # # Re-set the predictors for modeling----
 pred.vars=c("sqrt.X4mm","sqrt.X2mm","sqrt.X1mm","sqrt.X500um",
@@ -141,9 +146,10 @@ unique.vars.use
 #"CPN" crustacean Pagrus novaezelandiae
 
 # Run the full subset model selection----
-setwd("~/GitHub/FSSgam/case_study2_model_out") #Set wd for example outputs - will differ on your computer
+# dir.create("./output")
+setwd("./output") #Set wd for example outputs - will differ on your computer
 resp.vars=unique.vars.use
-use.dat=dat
+use.dat=dat #Why is this necessary, as it is defined in the loop below?
 factor.vars=c("Status")# Status as a Factor with two levels
 out.all=list()
 var.imp=list()
@@ -152,9 +158,13 @@ var.imp=list()
 for(i in 1:length(resp.vars)){
   use.dat=dat[which(dat$Taxa==resp.vars[i]),]
   
-  Model1=gam(response~s(lobster,k=3,bs='cr')+ s(Location,Site,bs="re"),
+  Model1=mgcv::gam(response~s(lobster,k=3,bs='cr')+ s(Location, Site, bs="re"), # Phil Haupt:Fails here
              family=tw(),  data=use.dat)
 
+  # Phil changes: - this works - data type needs to be defined as factors in second set of brackets - now defined ast the start
+  # Model1=mgcv::gam(response~s(lobster,k=3,bs='cr')+ s(as.factor(use.dat$Location),as.factor(use.dat$Site),bs="re"), # Phil Haupt:Fails here
+  #                  family=tw(),  data=use.dat)
+  
   model.set=generate.model.set(use.dat=use.dat,
                             test.fit=Model1,
                             pred.vars.cont=pred.vars,
