@@ -334,23 +334,25 @@ Theme1 <-
     strip.background = element_blank())
 
 
-# Bring in and format the raw data----
+# Bring in and format the raw data---- ##### PHIL comment 2020-10-07: why are we bringing in the data again? It probably is what i replicating the earlier problem of not having factors defined as such
 setwd("E:/stats/FSSgam/")
 name<-"clams"
 
 # Load the dataset - from github
 # dat <-read.csv(text=getURL("https://raw.githubusercontent.com/beckyfisher/FSSgam/master/case_study2_dataset.csv?token=AOSO6uyYhat9-Era46nbjALQpTydsTskks5ZY3vhwA%3D%3D"))%>%
 # Load the dataset - from local files
-dat <-read.csv("case_study2_dataset.csv")%>%
-  rename(response=Abundance)%>%
-  #   Transform variables
-  mutate(sqrt.X4mm=sqrt(X4mm))%>%
-  mutate(sqrt.X2mm=sqrt(X2mm))%>%
-  mutate(sqrt.X1mm=sqrt(X1mm))%>%
-  mutate(sqrt.X500um=sqrt(X500um))%>%
-  mutate(distance=as.numeric(as.character(Distance)))%>%
-  na.omit()%>%
-  glimpse()
+
+####### Phil note: I have commented this out, as it replicates the earlier problem with not having data types defined - plus I can't understand why we are reading in the data again at this point whnen did not remove it?
+# dat <-read.csv("case_study2_dataset.csv")%>%
+#   rename(response=Abundance)%>%
+#   #   Transform variables
+#   mutate(sqrt.X4mm=sqrt(X4mm))%>%
+#   mutate(sqrt.X2mm=sqrt(X2mm))%>%
+#   mutate(sqrt.X1mm=sqrt(X1mm))%>%
+#   mutate(sqrt.X500um=sqrt(X500um))%>%
+#   mutate(distance=as.numeric(as.character(Distance)))%>%
+#   na.omit()%>%
+#   glimpse()
 
 
 
@@ -380,7 +382,7 @@ predicts.bds.status = testdata%>%data.frame(fits)%>%
   group_by(Status)%>% #only change here
   summarise(response=mean(fit),se.fit=mean(se.fit))%>%
   ungroup()
-write.csv(predicts.bds.status,"predicts.csv") #there is some BUG in dplyr - that this fixes
+write.csv(predicts.bds.status,"predicts.csv") #there is some BUG in dplyr - that this fixes # Phil comment: I dont get te error- the results display?
 predicts.bds.status<-read.csv("predicts.csv")%>%
   glimpse()
 
