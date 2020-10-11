@@ -109,7 +109,7 @@ round(cor(dat[,pred.vars]),2)
 # nothing is highly correlated 
 #Phil: What about X1mm and X2mm at 0.91?
 
-# Plot of likely transformations - thanks to Anna Cresswell for this loop!
+# Plot of likely transformations - thanks to Anna Cresswell for this loop! 
 par(mfrow=c(3,2))
 for (i in pred.vars) {
   x<-dat[ ,i]
