@@ -1,4 +1,3 @@
-rm(list=ls())
 #  run FSS GAM on Phil s data
 
 # librarys----
@@ -24,15 +23,15 @@ library(FSSgam)
 source("./read_and_arrange_phils_data.R")
 
 # Define the preditcor variable names.
-pred.vars <- c("treatment", "depth", "rugosity", "sample_area", "temperature", "we2_mean", "f_effort", "perc_water_column", "has_score", "treatment.partner")
+pred.vars <- c("area","opcode", "treatment", "spatial_corr_id", "majhab", "rugosity","depth", "sample_area", "temperature", "we2_mean", "f_effort", "perc_water_column")
 
 # Check for correlation between numerical variables
-round(cor(dat[,pred.vars[2:8]]),2)
+round(cor(dat[,pred.vars[6:12]]),2) # only continuous variables used
 # nothing of concern
 
 # Plot of likely transformations - thanks to Anna Cresswell for this loop!#Phil comment: I s this correct when data is arranged long? It will be using multiples for every site.
 par(mfrow=c(3,2))
-for (i in pred.vars[2:8]) {
+for (i in pred.vars[6:12]) {
   x<-dat[ ,i]
   x = as.numeric(unlist(x))
   hist((x))#Looks best
@@ -47,11 +46,11 @@ for (i in pred.vars[2:8]) {
 # If the data are squewed to low numbers try sqrt>log or if squewed to high numbers try ^2 of ^3
 # Decided that ... needed a sqrt transformation
 # Decided ... were not informative variables, and drop.
+# No standardisation applied as used in community stats, because the gamm can use (te) as opposed to (s) to deal with different scales in values.
+# The column/field spatial_corr_id indicates which samples are "spatially correlated" - and may be required for the nesting design in analysis?
 
-# I am using these as test case so just continuing for now...
 
 # Check to make sure Response vector has not more than 80% zeros----
-# Phil's comment: this will get rid of rarer species like sharks...not sure that this analysis is correct.
 unique.vars=unique(as.character(dat$Taxa))
 unique.vars.use=character()
 for(i in 1:length(unique.vars)){
@@ -65,7 +64,7 @@ dir.create("./output_phil")
 setwd("./output_phil") #Set wd for example outputs - will differ on your computer
 resp.vars=unique.vars.use
 use.dat=dat #Why is this necessary, as it is defined in the loop below?
-factor.vars=c("treatment")# Status as a Factor with two levels
+factor.vars=c("area","treatment","opcode","spatial_corr_id", "majhab")# Status as a Factor with two levels
 out.all=list()
 var.imp=list()
 
@@ -80,7 +79,7 @@ for(i in 1:length(resp.vars)){
                                test.fit=Model1,
                                pred.vars.cont=pred.vars,
                                pred.vars.fact=factor.vars,
-                               # linear.vars="",
+                               # linear.vars="",#like distance
                                k=3,
                                null.terms="s(treament,bs='re')")
   out.list=fit.model.set(model.set,
