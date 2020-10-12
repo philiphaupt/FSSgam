@@ -37,39 +37,46 @@
 #-------------------------------------------
 
 library(tidyverse)
-raw_dat <- read_rds("E:/stats/aldabra/BRUVs/01_prep_data/04_size_classes_2_from_chapter_4/fish.df4.rds")
 
+# READ IN DATA:------
+# raw_dat <- read_rds("E:/stats/aldabra/BRUVs/01_prep_data/04_size_classes_2_from_chapter_4/fish.df4.rds")
 # OK, so running the script below calls a script from my PhD - which will prepare such a data set from my raw data.
 source("E:/stats/aldabra/BRUVs/02_ALD/diversity/scripts/01_read_reshape_sp_comm_matrices.R")
 # It represents mean maxn for each species, from the paired samples RUVS and BRUVs from the same sampling area.
-
 # Clear up the data that we don't need right away - keeping only ald.paired
-rm(bruvs.comm.ald.paired,ruvs.comm.ald.paired, fish.df4,nsp.ald.paired, raw_dat, comm.ald.paired)
+rm(bruvs.comm.ald.paired,ruvs.comm.ald.paired, fish.df4,nsp.ald.paired, comm.ald.paired)
 
+# Add spatial correlation tracking ID using existing id
+ald.paired$spatial_corr_id <- sub('.*-', '', ald.paired$treatment.partner)
+
+
+# RESHAPE DATA:
 # now, reshape (into a species by site matrix)
-dat <- reshape2::acast(ald.paired, opcode ~ species, fill = 0, value.var = 'maxn', fun.aggregate = sum)
-
-dat_df <- as_tibble(dat)
+dat_sp_matrix <- reshape2::acast(ald.paired, opcode ~ species, fill = 0, value.var = 'maxn', fun.aggregate = sum)
+# Make it into a tibble for easier working
+dat_df <- as_tibble(dat_sp_matrix)
 
 #  add opcode as a column, to which env data can be joined
-dat_df$opcode <- rownames(dat)
+dat_df$opcode <- rownames(dat_sp_matrix)
 
-# join the env data that you are interested in
-dat_long <- dat_df %>% pivot_longer(!opcode, names_to = "Taxa", values_to = "response")
+# Make the data into long format
+dat_long <- dat_df %>% 
+  pivot_longer(!opcode, names_to = "Taxa", values_to = "response")
 
 # now join env data
-dat_df_species_env <- ald.paired %>% select(
+dat <- ald.paired %>% select(
+  area,
   opcode,
   treatment,
-  depth,
+  spatial_corr_id,
+  majhab,
   rugosity,
+  depth,
   sample_area = sample.area,
   temperature,
   we2_mean,
   f_effort,
-  perc_water_column,
-  has_score,
-  treatment.partner
+  perc_water_column
 ) %>% 
   distinct() %>% 
   right_join(dat_long, by = "opcode")
@@ -78,8 +85,6 @@ dat_df_species_env <- ald.paired %>% select(
 # Discuss with Ant:
 #  What needs adding: a variable to work out aspect in terms of continuous 360 deg?; 
 # Any transformations to add? See the Standardising transformations already applied in earlier chapters
-rm(dat,dat_df)
-# simplify data naming for easier coding
-dat <- dat_df_species_env
-rm(dat_df_species_env)
+
+rm(dat_sp_matrix,dat_df, ald.paired, dat_long)
 
